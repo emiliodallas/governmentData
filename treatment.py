@@ -121,7 +121,7 @@ class DataProcessor:
 
 
 if __name__ == "__main__":
-    pathState = 'data/states'
+    pathState = 'data/state'
     pathFlight = 'data/flights'
 
     dbName = "your_db_name"
