@@ -1,57 +1,65 @@
 import psycopg2
 
+class DatabaseManager:
+    def __init__(self, dbname, user, password, host):
+        self.dbname = dbname
+        self.user = user
+        self.password = password
+        self.host = host
+        self.conn = None
+        self.cur = None
 
-def createTable(dbName, userName, pwd, host):
-    conn = psycopg2.connect(
-    dbName="your_db_name",
-    userName="your_username",
-    pwd="your_password",
-    host="your_host"
-    )
+    def connect(self):
+        self.conn = psycopg2.connect(
+            dbname=self.dbname,
+            user=self.user,
+            password=self.password,
+            host=self.host
+        )
+        self.cur = self.conn.cursor()
 
-    cur = conn.cursor()
+    def disconnect(self):
+        if self.cur:
+            self.cur.close()
+        if self.conn:
+            self.conn.close()
 
-    schemaName = "brazil"
-    tableName = "flights"
+    def execute_query(self, query):
+        self.cur.execute(query)
+        self.conn.commit()
 
-    tableSupport = "stateCodes"
+    def create_schema(self, schema_name):
+        create_schema_query = f"CREATE SCHEMA IF NOT EXISTS {schema_name};"
+        self.execute_query(create_schema_query)
 
-    createFlights= f"""
-    CREATE TABLE IF NOT EXISTS {schemaName}.{tableName} (
-        flightId SERIAL PRIMARY KEY,
-        date DATE,
-        company VARCHAR,
-        origin VARCHAR,
-        destiny VARCHAR,
-        price NUMERICAL(10,1)
-        seats INTEGER
-    );
-    """
+    def create_flights_table(self, schema_name):
+        create_flights_query = f"""
+            CREATE TABLE IF NOT EXISTS {schema_name}.flights (
+                flightId SERIAL PRIMARY KEY,
+                date DATE,
+                company VARCHAR,
+                origin VARCHAR,
+                destiny VARCHAR,
+                price NUMERIC(10, 1),
+                seats INTEGER
+            );
+        """
+        self.execute_query(create_flights_query)
 
-    createSupport = f"""
-    CREATE TABLE IF NOT EXISTS {schemaName}.{tableSupport} (
-        aerodromoId SERIAL PRIMARY KEY,
-        code VARCHAR,
-        state VARCHAR,
-        city VARCHAR
-    );
-    """
+    def create_state_codes_table(self, schema_name):
+        create_state_codes_query = f"""
+            CREATE TABLE IF NOT EXISTS {schema_name}.stateCodes (
+                aerodromoId SERIAL PRIMARY KEY,
+                code VARCHAR,
+                state VARCHAR,
+                city VARCHAR
+            );
+        """
+        self.execute_query(create_state_codes_query)
 
-     # Adding a foreign key column to the flights table
-    addForeignKeyQuery = f"""
-        ALTER TABLE {schemaName}.{tableName}
-        ADD COLUMN state_id INTEGER REFERENCES {schemaName}.{tableSupport}(aerodromoId);
-    """
-
-
-    cur.execute(addForeignKeyQuery)
-    cur.execute(createFlights)
-    cur.execute(createSupport)
-
-    conn.commit()
-    cur.close()
-    conn.close()
-
-if __name__ == "__main__":
-
-    createTable(dbName=, userName=, pwd=, host=)
+    def add_foreign_key(self, schema_name):
+        add_foreign_key_query = f"""
+            ALTER TABLE {schema_name}.flights
+            ADD COLUMN state_id INTEGER REFERENCES {schema_name}.stateCodes(aerodromoId);
+        """
+        self.execute_query(add_foreign_key_query)

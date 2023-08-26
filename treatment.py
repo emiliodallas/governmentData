@@ -6,11 +6,13 @@ import os
 
 
 class DataProcessor:
-    def __init__(self, dbName, userName, pwd, host):
-        self.dbName = dbName
-        self.userName = userName
-        self.pwd = pwd
+    def __init__(self, dbname, user, password, host):
+        self.dbname = dbname
+        self.user = user
+        self.password = password
         self.host = host
+        self.conn = None
+        self.cur = None
 
     def _clean_strings(self, df):
         def remove_accents(input_str):
@@ -23,14 +25,15 @@ class DataProcessor:
         return df
 
     def _insert_state_data(self, df):
-        conn = psycopg2.connect(
-            dbname=self.dbName,
-            user=self.userName,
-            password=self.pwd,
+        self.conn = psycopg2.connect(
+            dbname=self.dbname,
+            user=self.user,
+            password=self.password,
             host=self.host
         )
+        self.cur = self.conn.cursor()
 
-        cur = conn.cursor()
+        cur = self.conn.cursor()
 
         schemaName = "brazil"
         stateCodesTableName = "stateCodes"
@@ -42,9 +45,37 @@ class DataProcessor:
             """
             cur.execute(insert_query)
 
-        conn.commit()
+        self.conn.commit()
         cur.close()
-        conn.close()
+        self.conn.close()
+
+    def insert_flight_data(self, df):
+        self.conn = psycopg2.connect(
+            dbname=self.dbname,
+            user=self.user,
+            password=self.password,
+            host=self.host
+        )
+        self.cur = self.conn.cursor()
+
+        cur = self.conn.cursor()
+
+        schemaName = "brazil"
+        stateFlightsTableName = "flights"
+
+        for index, row in df.iterrows():
+            price = float(row['TARIFA'].replace(',', '.'))
+            print("Loading data")
+            insert_query = f"""
+                INSERT INTO {schemaName}.{stateFlightsTableName} (date, company, origin, destiny, price, seats)
+                VALUES ('{row['DATA']}', '{row['EMPRESA']}', '{row['ORIGEM']}',
+                '{row['DESTINO']}', {price}, '{row['ASSENTOS']}');
+            """
+            cur.execute(insert_query)
+        print("Data loaded to DB")
+        self.conn.commit()
+        cur.close()
+        self.conn.close()
 
     def process_files_state(self, directory):
         stateFiles = glob.glob(f"{directory}/*.xlsx")
@@ -61,6 +92,8 @@ class DataProcessor:
             # Save cleaned data to a new Excel file
             cleaned_filename = f"data/cleaned_{stateFile}"
             df.to_excel(cleaned_filename, index=False)
+            self._insert_state_data(df=df)
+            print("State Loaded to DB")
 
     def process_files_flights(self, directory):
         flightsFiles = []
@@ -89,9 +122,7 @@ class DataProcessor:
                                         }
                                 )
                 df["DATA"] = df["ANO"].astype(str) + "-" + df["MES"].astype(str) + "-1"
-            # Clean up strings
-            #df = self._clean_strings(df)
-
+            
             # Extract the directory path where the cleaned file will be saved
             cleaned_directory = os.path.join("data", "cleaned_data", "flight", os.path.dirname(os.path.relpath(csv_file, start=directory)))
 
@@ -103,33 +134,6 @@ class DataProcessor:
 
             # Save cleaned data to a new CSV file
             df.to_csv(cleaned_filename, index=False, sep=';')
+            self.insert_flight_data(df=df)
             print(f"Processed file saved: {cleaned_filename}")
 
-
-    def load_state_data(self, directory):
-        state_data_files = glob.glob(f"{directory}/*.csv")
-
-        state_data = pd.DataFrame()  # Create an empty DataFrame to hold the state data
-
-        for csv_file in state_data_files:
-            df = pd.read_csv(csv_file)  # Read state data CSV file
-
-            # Append the state data to the DataFrame
-            state_data = state_data.append(df, ignore_index=True)
-
-        return state_data
-
-
-if __name__ == "__main__":
-    pathState = 'data/state'
-    pathFlight = 'data/flights'
-
-    dbName = "your_db_name"
-    userName = "your_username"
-    pwd = "your_password"
-    host = "your_host"
-
-    data_processor = DataProcessor(dbName, userName, pwd, host)
-
-    data_processor.process_files_state(directory=pathState)
-    data_processor.process_files_flights(directory=pathFlight)
