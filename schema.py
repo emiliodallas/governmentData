@@ -60,6 +60,7 @@ class DatabaseManager:
     def add_foreign_key(self, schema_name):
         add_foreign_key_query = f"""
             ALTER TABLE {schema_name}.flights
-            ADD COLUMN state_id INTEGER REFERENCES {schema_name}.stateCodes(aerodromoId);
+            ADD COLUMN stateOriginId INTEGER REFERENCES {schema_name}.stateCodes(aerodromoId),
+            ADD COLUMN stateDestinyId INTEGER REFERENCES {schema_name}.stateCodes(aerodromoId);
         """
         self.execute_query(add_foreign_key_query)

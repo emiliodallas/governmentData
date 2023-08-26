@@ -62,14 +62,27 @@ class DataProcessor:
 
         schemaName = "brazil"
         stateFlightsTableName = "flights"
+        tableSupport = 'stateCodes'
 
         for index, row in df.iterrows():
             price = float(row['TARIFA'].replace(',', '.'))
-            print("Loading data")
+            origin_query = f"SELECT aerodromoId FROM {schemaName}.{tableSupport} WHERE code = '{row['ORIGEM']}'"
+            destiny_query = f"SELECT aerodromoId FROM {schemaName}.{tableSupport} WHERE code = '{row['DESTINO']}'"
+
+            
+            self.cur.execute(origin_query)
+            state_origin_result = self.cur.fetchone()
+            state_origin_id = state_origin_result[0] if state_origin_result else '999'
+
+            self.cur.execute(destiny_query)
+            state_destiny_result = self.cur.fetchone()
+            state_destiny_id = state_destiny_result[0] if state_destiny_result else '999'
+
             insert_query = f"""
-                INSERT INTO {schemaName}.{stateFlightsTableName} (date, company, origin, destiny, price, seats)
+                INSERT INTO {schemaName}.{stateFlightsTableName} (date, company, origin, destiny, price, 
+                                                                    seats, stateOriginId, stateDestinyId)
                 VALUES ('{row['DATA']}', '{row['EMPRESA']}', '{row['ORIGEM']}',
-                '{row['DESTINO']}', {price}, '{row['ASSENTOS']}');
+                '{row['DESTINO']}', {price}, '{row['ASSENTOS']}', {state_origin_id}, {state_destiny_id});
             """
             cur.execute(insert_query)
         print("Data loaded to DB")
