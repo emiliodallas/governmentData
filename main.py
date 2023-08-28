@@ -1,20 +1,24 @@
 from treatment import DataProcessor  # Import DataProcessor class
 from schema import DatabaseManager  # Import DatabaseManager class
+from dotenv import load_dotenv
+import os
 
 if __name__ == "__main__":
+    load_dotenv()
+
     # Initialize DataProcessor and DatabaseManager instances
     data_manager = DataProcessor(
-        dbname="database_Hilab",
-        user="postgres",
-        password="123",
-        host="localhost"
+        dbname=os.getenv("dbname"),
+        user=os.getenv("user"),
+        password=os.getenv("password"),
+        host=os.getenv("host")
     )
 
     db_manager = DatabaseManager(
-        dbname="database_Hilab",
-        user="postgres",
-        password="123",
-        host="localhost"
+        dbname=os.getenv("dbname"),
+        user=os.getenv("user"),
+        password=os.getenv("password"),
+        host=os.getenv("host")
     )
 
     path_state = 'data/state'
