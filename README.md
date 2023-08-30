@@ -22,16 +22,18 @@ Este código foi escrito em Python 3.10 para solucionar o exercício 2. Siga as 
     pip3 install -r requirements.txt
     ```
 
-Foi utilizado o banco de dados PostgreSQL com os seguintes parâmetros:
+Foi utilizado o banco de dados PostgreSQL. Para autenticar com o mesmo, é necessário criar um arquio .env no root (/) do diretório. Para isso, rode o comando:
+touch .env
 
-- Nome do banco de dados: `database_Hilab`
-- Usuário: `postgre`
-- Senha: `123`
-- Host: `localhost`
-
-Esses dados devem ser atualizados no arquivo `main.py` nas chamadas das classes `DataProcessor` e `DatabaseManager`.
-
-Certifique-se de criar uma base de dados com esse nome e utilize o usuário/senha de sua preferência. Como a execução é local, o host pode ser definido como `localhost`.
+Feito isso, abra o arquivo e insira as credenciais conforme:
+```
+dbname=''
+user=''
+host=''
+password=''
+```
+Adicionando os valores dentro das aspas simples. 
+Como padrão, o nome do banco de dados utilizado foi `database_Hilab`. Certifique-se de criar uma base de dados com esse nome e utilize o usuário/senha de sua preferência. Como a execução é local, o host pode ser definido como `localhost`.
 
 5. Para rodar o script, execute o seguinte comando:
 
