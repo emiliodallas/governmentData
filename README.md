@@ -2,7 +2,11 @@
 
 Este código foi escrito em Python 3.10 para solucionar o exercício 2. Siga as etapas abaixo para executá-lo:
 
-1. Certifique-se de ter o Python (versão 3.9 ou superior) e o pip instalados.
+1. Certifique-se de ter o Python (versão 3.9 ou superior) e o pip instalados. Para isso, pode rodar as seguintes linhas de código:
+    ```
+    python3 --version
+    pip3 --version
+    ```
 
 2. Crie um novo ambiente virtual usando o seguinte comando:
 
